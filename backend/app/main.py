@@ -5,7 +5,7 @@ from app.api.v1.router import api_router
 
 app = FastAPI(
     title=settings.APP_NAME,
-    description="FastAPI Backend for AI-powered Study Assistant (RAG, Summaries, Quizzes, Flashcards)",
+    description="FastAPI Backend for AI-powered Study Assistant (PDF Processing, RAG, Summaries, Quizzes, Flashcards)",
     version="1.0.0",
     openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )

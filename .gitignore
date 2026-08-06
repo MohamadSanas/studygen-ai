@@ -33,6 +33,7 @@ wheels/
 chroma_db/
 .chroma/
 
+
 # Database
 *.db
 *.sqlite
