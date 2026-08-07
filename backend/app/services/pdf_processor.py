@@ -1,3 +1,4 @@
+import os
 from typing import List
 from pypdf import PdfReader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -28,3 +29,16 @@ class PDFProcessor:
                     )
                 )
         return self.text_splitter.split_documents(raw_docs)
+
+
+# Test PDF Processor
+if __name__ == "__main__":
+    processor = PDFProcessor()
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    pdf_path = os.path.join(script_dir, "Charles_s_CV_Template (5).pdf")
+    docs = processor.extract_text_and_split(pdf_path, "doc-123")
+    for doc in docs:
+        print(doc)
+
+    print(f"Extracted {len(docs)} chunks.")
+    

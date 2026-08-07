@@ -12,4 +12,4 @@ class LLMService:
 
     async def generate (self,prompt:str):
         response = await self.llm.ainvoke(prompt)
-        return response.text
+        return response.content
