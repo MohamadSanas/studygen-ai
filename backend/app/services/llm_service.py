@@ -22,3 +22,7 @@ class LLMService:
         for block in response.content
         if block.get("type") == "text"
     )
+
+    async def generate_structured(self, prompt: str, schema):
+        structured_llm = self.llm.with_structured_output(schema)
+        return await structured_llm.ainvoke(prompt)
