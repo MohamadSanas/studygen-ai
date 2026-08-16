@@ -1,15 +1,15 @@
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
-
-from app.core.config import settings
+from langchain_huggingface import HuggingFaceEmbeddings
 
 
 class EmbeddingService:
 
     def __init__(self):
-        self.embeddings = GoogleGenerativeAIEmbeddings(
-            model=settings.EMBEDDING_MODEL,
-            google_api_key=settings.GOOGLE_API_KEY,
+        self.embeddings = HuggingFaceEmbeddings(
+            model_name="sentence-transformers/all-MiniLM-L6-v2"
         )
 
-    def get_embeddings(self):
-        return self.embeddings
+    def embed_text(self, text: str) -> list[float]:
+        return self.embeddings.embed_query(text)
+
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        return self.embeddings.embed_documents(texts)

@@ -3,6 +3,7 @@ from typing import List
 from pypdf import PdfReader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
+from pathlib import Path
 
 class PDFProcessor:
     def __init__(self, chunk_size: int = 1000, chunk_overlap: int = 200):
@@ -28,7 +29,12 @@ class PDFProcessor:
                         }
                     )
                 )
-        return self.text_splitter.split_documents(raw_docs)
+        chunks = self.text_splitter.split_documents(raw_docs)
+
+        for index,chunk in enumerate(chunks):
+            chunk.metadata["chunk_index"] = index
+
+        return chunks
 
 
 # Test PDF Processor
