@@ -16,25 +16,25 @@ class PastPaperProcessor:
         full_text = "\n\n".join(doc.page_content for doc in documents)
 
         prompt = f"""
-        You are an exam paper parser.
+            You are an exam paper parser.
 
-        Extract all exam questions from the following past paper.
+            Extract all exam questions from the following past paper.
 
-        Rules:
-        - Preserve the original question numbering.
-        - Preserve subquestions such as (a), (b), (i), (ii).
-        - Do not invent questions.
-        - Extract the question text as accurately as possible.
-        - Extract marks when explicitly available.
-        - If marks are not available, use null.
-        - Return only the structured result.
+            Rules:
+            - Preserve the original question numbering.
+            - Preserve subquestions such as (a), (b), (i), (ii).
+            - Do not invent questions.
+            - Extract the question text as accurately as possible.
+            - Extract marks when explicitly available.
+            - If marks are not available, use null.
+            - Return only the structured result.
 
-        PAST PAPER:
+            PAST PAPER:
 
-        {full_text}
+            {full_text}
 
 
-        """
+            """
         #response  = await self.llm_service.generate(prompt)
 
         result = await self.llm_service.generate_structured(
@@ -44,9 +44,9 @@ class PastPaperProcessor:
 
         print(result)
 
-        return PastPaper(
-            document_id=document_id,
+        return ExamPaper(
+            paper_title=result.paper_title,
             year=year,
-            questions=[],
+            questions=result.questions,
         )
 

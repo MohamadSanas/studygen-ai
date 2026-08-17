@@ -1,12 +1,14 @@
 from pydantic import BaseModel
 
 class ExamQuestion(BaseModel):
-    year: int
-    question_number: int
-    question_text: str
-    answer: int | None = None
+    question_number:str
+    context:str | None = None
+    text:str
+    marks:int | None = None
+    total_marks:str | None = None
+    
 
-class PastPaper(BaseModel):
-    document_id: str
+class ExamPaper(BaseModel):
+    paper_title: str
     year: int | None = None
     questions: list[ExamQuestion]
