@@ -9,6 +9,7 @@ class LLMService:
             model=settings.MODEL_NAME,
             google_api_key=settings.GOOGLE_API_KEY,
             max_tokens=settings.MAX_TOKENS,
+            temperature=0,
         )
 
     async def generate(self, prompt: str) -> str:
@@ -18,11 +19,15 @@ class LLMService:
             return response.content
 
         return "".join(
-        block["text"]
-        for block in response.content
-        if block.get("type") == "text"
-    )
+            block["text"]
+            for block in response.content
+            if block.get("type") == "text"
+        )
 
     async def generate_structured(self, prompt: str, schema):
-        structured_llm = self.llm.with_structured_output(schema)
+        structured_llm = self.llm.with_structured_output(
+            schema,
+            method="json_schema",
+        )
+
         return await structured_llm.ainvoke(prompt)

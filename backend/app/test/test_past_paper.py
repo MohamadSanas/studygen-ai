@@ -23,8 +23,8 @@ async def main():
 
     result = await processor.process(
         file_path=pdf_path,
-        document_id="past-paper-2025",
-        year=2025,
+        document_id="ec9630-2024",
+        year=2024,
     )
 
     print("\nPast paper processed successfully")

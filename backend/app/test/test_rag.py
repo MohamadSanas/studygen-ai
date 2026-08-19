@@ -5,16 +5,23 @@ from app.services.rag_service import RAGService
 
 async def main():
 
-    rag = RAGService()
+    rag_service = RAGService()
 
-    question = "What programming languages does this person know?"
+    question = "What is a process?"
 
-    result = await rag.ask(question)
+    result = await rag_service.ask(
+        question=question,
+        k=4,
+    )
+
+    print("=" * 80)
+    print("QUESTION")
+    print("=" * 80)
+    print(question)
 
     print("\n" + "=" * 80)
     print("ANSWER")
     print("=" * 80)
-
     print(result["answer"])
 
     print("\n" + "=" * 80)

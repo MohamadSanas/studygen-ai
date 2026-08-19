@@ -1,11 +1,18 @@
 from app.services.embedding_service import EmbeddingService
 
-service = EmbeddingService()
 
-embedding = service.get_embeddings().embed_query(
-    "The CPU executes instructions."
-)
+def main():
+    service = EmbeddingService()
 
-print(type(embedding))
-print(len(embedding))
-print(embedding[:10])
+    text = "A process is a program in execution."
+
+    embedding = service.embed_text(text)
+
+    print("Embedding generated successfully")
+    print("Vector type:", type(embedding))
+    print("Vector dimensions:", len(embedding))
+    print("First 5 values:", embedding[:5])
+
+
+if __name__ == "__main__":
+    main()

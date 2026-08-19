@@ -1,36 +1,18 @@
-from pathlib import Path
-
 from app.services.pdf_processor import PDFProcessor
 
+processor = PDFProcessor()
 
-def main():
-    pdf_processor = PDFProcessor()
+pdf_path = "test_data/ProcessLectureSlide.pdf"
 
-    pdf_path = Path(
-        "C:/Users/sanas/Desktop/my learn/Projects/"
-        "studygen-ai/backend/test_data/Charles_s_CV_Template (5).pdf"
-    )
+chunks = processor.extract_text_and_split(
+    pdf_path,
+    "lect_slide",
+)
 
-    if not pdf_path.exists():
-        print("PDF not found:", pdf_path)
-        return
+print(f"Total chunks: {len(chunks)}")
 
-    print("PDF found")
-
-    docs = pdf_processor.extract_text_and_split(
-        pdf_path,
-        "doc-123"
-    )
-
-    print(f"Extracted {len(docs)} chunks.\n")
-
-    for i, doc in enumerate(docs):
-        print("=" * 80)
-        print(f"Chunk: {i}")
-        print(f"Metadata: {doc.metadata}")
-        print(f"Text:\n{doc.page_content[:500]}")
-        print()
-
-
-if __name__ == "__main__":
-    main()
+for chunk in chunks:
+    print("\n" + "=" * 80)
+    print("Metadata:", chunk.metadata)
+    print("Content:")
+    print(chunk.page_content)

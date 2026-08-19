@@ -2,7 +2,7 @@ from pydantic import BaseModel
 
 
 class ExamQuestion(BaseModel):
-    question_number: str
+    question_number: str | None = None
     text: str | None = None
     context: str | None = None
     marks: int | None = None
@@ -11,6 +11,6 @@ class ExamQuestion(BaseModel):
 
 
 class ExamPaper(BaseModel):
-    paper_title: str
+    paper_title: str | None = None
     year: int | None = None
-    questions: list[ExamQuestion]
+    questions: list[ExamQuestion] = []
