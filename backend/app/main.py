@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api.v1.router import api_router
+from app.api.routes.summarize import router as summarize_router
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -19,7 +19,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(api_router, prefix=settings.API_V1_STR)
+app.include_router(summarize_router,prefix="/api/v1/summarize",tags=["summarize"])
 
 @app.get("/")
 async def root():
@@ -32,3 +32,5 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "ok"}
+
+app
