@@ -50,18 +50,30 @@ async def summarize_pdf(file: UploadFile = File(...)):
         llm = LLMService()
 
         prompt = f"""
-            You are StudyGen AI, a study assistant.
+            You are StudyGen AI, a university study assistant.
 
-            Summarize the following lecture material.
+            Create a clear, exam-oriented summary of the lecture material below.
 
             Requirements:
             - Identify the main topics.
-            - Explain the important concepts clearly.
+            - Explain important concepts clearly and concisely.
             - Include important definitions.
-            - Include important formulas when present.
-            - Use headings and bullet points.
-            - Do not invent information.
-            - Keep the summary useful for university exam preparation.
+            - Include important formulas and equations when present.
+            - Use Markdown headings.
+            - Use Markdown bullet points and numbered lists where appropriate.
+            - Use **bold** for important terms.
+            - Preserve mathematical formulas using LaTeX.
+            - Do not invent information that is not present in the lecture material.
+            - Focus on information useful for university exam preparation.
+
+            IMPORTANT FORMATTING RULES:
+            - Return ONLY the Markdown summary.
+            - Do NOT escape Markdown characters.
+            - Use # for headings, not \\#.
+            - Use **text** for bold, not \\*\\*text\\*\\*.
+            - Use - for bullet points.
+            - Use LaTeX for mathematical formulas, for example:
+            $$y = mx + b$$
 
             LECTURE MATERIAL:
 
