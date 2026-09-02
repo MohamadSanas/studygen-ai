@@ -36,6 +36,15 @@ async def summarize_pdf(file: UploadFile = File(...)):
             document_id="summary-temp"
         )
 
+        print(f"Total chunks: {len(documents)}")
+
+        pages = sorted(
+            set(doc.metadata.get("page") for doc in documents)
+        )
+
+        print(f"Pages found: {pages}")
+        print(f"Total pages found: {len(pages)}")
+
         if not documents:
             raise HTTPException(
                 status_code=400,
