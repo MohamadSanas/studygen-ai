@@ -1,7 +1,6 @@
 import os
-from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from dotenv import load_dotenv
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -10,12 +9,13 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     API_V1_STR: str = "/api/v1"
 
-    MODEL_NAME: str = "gemini-3.6-flash"
+    # LLM
+    MODEL_NAME: str = "Qwen3-14B"
     MAX_TOKENS: int = 2048
-    
+    QWEN_API_URL: str
 
     # API Keys
-    GOOGLE_API_KEY: str = os.getenv("GOOGLE_API_KEY")
+    GOOGLE_API_KEY: str | None = None
 
     # Vector DB & Storage
     CHROMA_PERSIST_DIRECTORY: str = "./chroma_db"
@@ -29,7 +29,8 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
-        extra="ignore"
+        extra="ignore",
     )
+
 
 settings = Settings()

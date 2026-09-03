@@ -1,4 +1,4 @@
-from app.services.llm_service import LLMService
+from app.services.llm_service_qwen import QwenLLMService
 from fastapi import APIRouter,Depends,HTTPException,File,UploadFile,Form
 from app.core.config import settings
 
@@ -56,7 +56,7 @@ async def summarize_pdf(file: UploadFile = File(...)):
             for doc in documents
         )
 
-        llm = LLMService()
+        llm = QwenLLMService()
 
         prompt = f"""
             You are StudyGen AI, a university study assistant.
@@ -91,7 +91,10 @@ async def summarize_pdf(file: UploadFile = File(...)):
             SUMMARY:
             """
 
-        summary = await llm.generate(prompt)
+        summary = await llm.generate(
+            question="Summarize this lecture material into clear, exam-focused study notes.",
+            context=prompt,
+        )
 
         return {
             "file_name": file.filename,
