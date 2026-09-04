@@ -33,4 +33,12 @@ class Settings(BaseSettings):
     )
 
 
+    # LLM - Hugging Face
+    # LLM
+    HF_API_URL: str
+    HF_TOKEN: str
+    HF_MODEL: str
+    MAX_TOKENS: int = 2048
+
+
 settings = Settings()

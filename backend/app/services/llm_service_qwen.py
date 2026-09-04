@@ -1,39 +1,58 @@
-from time import time
-from aiohttp import payload
 import httpx
 
 from app.core.config import settings
 
+
 class QwenLLMService:
 
     def __init__(self):
-        self.base_url = settings.QWEN_API_URL.strip('/')
+        self.api_url = settings.HF_API_URL
+        self.api_token = settings.HF_TOKEN
+        self.model = settings.HF_MODEL
 
+    async def generate(self, question: str, context: str) -> str:
 
-    async def generate(self,question:str,context:str) -> str:
+        prompt = f"""
+You are StudyGen AI, a university study assistant.
+
+{question}
+
+LECTURE MATERIAL:
+
+{context}
+"""
+
         payload = {
-            "question":question,
-            "context":context,
+            "model": self.model,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ]
         }
 
-        #use infer api 
+        headers = {
+            "Authorization": f"Bearer {self.api_token}",
+            "Content-Type": "application/json"
+        }
+
         async with httpx.AsyncClient(timeout=180.0) as client:
+
             response = await client.post(
-                f"{self.base_url}/generate",
-                json=payload,
+                self.api_url,
+                headers=headers,
+                json=payload
             )
+
             response.raise_for_status()
+
             data = response.json()
 
-        if "answer" not in data:
+        try:
+            return data["choices"][0]["message"]["content"]
+
+        except (KeyError, IndexError, TypeError) as e:
             raise ValueError(
-                "Qwen API did not return 'answer' in response",
-                data,
-            )
-
-        answer = data["answer"]
-
-        return answer
-
-        
-            
+                f"Unexpected Hugging Face response: {data}"
+            ) from e
