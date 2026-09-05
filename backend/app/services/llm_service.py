@@ -1,33 +1,69 @@
-from langchain_google_genai import ChatGoogleGenerativeAI
+import httpx
 
 from app.core.config import settings
 
 
 class LLMService:
     def __init__(self):
-        self.llm = ChatGoogleGenerativeAI(
-            model=settings.MODEL_NAME,
-            google_api_key=settings.GOOGLE_API_KEY,
-            max_tokens=settings.MAX_TOKENS,
-            temperature=0,
-        )
+        self.api_url = settings.HF_API_URL
+        self.api_token = settings.HF_TOKEN
+        self.model = settings.HF_MODEL
 
     async def generate(self, prompt: str) -> str:
-        response = await self.llm.ainvoke(prompt)
+        payload = {
+            "model": self.model,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ]
+        }
 
-        if isinstance(response.content, str):
-            return response.content
+        headers = {
+            "Authorization": f"Bearer {self.api_token}",
+            "Content-Type": "application/json"
+        }
 
-        return "".join(
-            block["text"]
-            for block in response.content
-            if block.get("type") == "text"
-        )
+        async with httpx.AsyncClient(timeout=180.0) as client:
+
+            response = await client.post(
+                self.api_url,
+                headers=headers,
+                json=payload
+            )
+
+            response.raise_for_status()
+
+            data = response.json()
+
+        try:
+            return data["choices"][0]["message"]["content"]
+
+        except (KeyError, IndexError, TypeError) as e:
+            raise ValueError(
+                f"Unexpected Hugging Face response: {data}"
+            ) from e
 
     async def generate_structured(self, prompt: str, schema):
-        structured_llm = self.llm.with_structured_output(
-            schema,
-            method="json_schema",
-        )
+        """
+        Generate structured JSON output from the LLM.
 
-        return await structured_llm.ainvoke(prompt)
+        The schema should be a Pydantic model.
+        """
+
+        schema_json = schema.model_json_schema()
+
+        structured_prompt = f"""
+{prompt}
+
+Return the answer ONLY as valid JSON.
+
+The JSON must follow this schema:
+
+{schema_json}
+"""
+
+        result = await self.generate(structured_prompt)
+
+        return result

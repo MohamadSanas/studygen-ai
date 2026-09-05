@@ -11,16 +11,12 @@ class QwenLLMService:
         self.model = settings.HF_MODEL
 
     async def generate(self, question: str, context: str) -> str:
-
         prompt = f"""
-You are StudyGen AI, a university study assistant.
-
-{question}
-
-LECTURE MATERIAL:
-
-{context}
-"""
+            You are StudyGen AI, a university study assistant.
+            {question}
+            LECTURE MATERIAL:
+            {context}
+        """
 
         payload = {
             "model": self.model,
