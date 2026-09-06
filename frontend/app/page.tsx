@@ -11,12 +11,25 @@ interface SummaryResponse {
   summary: string;
 }
 
+interface DocumentResponse {
+  id: string;
+  filename: string;
+  content_type: string;
+  file_path: string;
+  num_chunks: number;
+  created_at: string;
+}
+
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [summary, setSummary] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
-
+  
+  const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
+  const [documentId, setDocumentId] = useState<string | null>(null);
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
 
@@ -46,6 +59,27 @@ export default function Home() {
     setSummary("");
 
     try {
+      const documentFormData = new FormData();
+      documentFormData.append("file", file);
+
+      const document_response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/upload`,{
+        method: "POST",
+        body: documentFormData,
+      })
+      if (!document_response.ok) {
+        throw new Error(
+          "Failed to upload document."
+        );
+      }
+
+      const document_details = await document_response.json()
+      const documentId = document_details.id;
+
+      console.log("Document ID:", documentId);
+      setDocumentId(documentId);
+
+      
+
       const formData = new FormData();
       formData.append("file", file);
 
