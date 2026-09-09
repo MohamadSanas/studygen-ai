@@ -121,54 +121,73 @@ export default function Home() {
     }
   };
 
-  const handleChat = async() => {
-    if(!documentId){
-      setError("Please upload a document first.");
-      return;
-    }
-    if(!question.trim){
-      setError("Please enter a question.");
-      return;
-    }
-
-    const userMessage: ChatMessage = {role: "user", content: question};
-    
-    setChatLoading(true);
-    setAnswer("");
-    setError("");
-
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/`, {
-        method: "POST",
-        body: JSON.stringify({
-          documentId,
-          question,
-          chatHistory: chatHistory,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.detail || "Failed to generate answer.");
+  const handleChat = async () => {
+      if (!documentId) {
+        setError("Please upload a document first.");
+        return;
       }
 
-      const assistantMessage: ChatMessage = {role: "assistant", content: data.answer};
-      setChatHistory((prevHistory) => [...prevHistory, userMessage, assistantMessage]);
-
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Something went wrong.");
+      if (!question.trim()) {
+        setError("Please enter a question.");
+        return;
       }
-    } finally {
-      setChatLoading(false);
-    }
-  }
+
+      const userMessage: ChatMessage = {
+        role: "user",
+        content: question,
+      };
+
+      setChatLoading(true);
+      setAnswer("");
+      setError("");
+
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/chat/`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              document_id: documentId,
+              question: question,
+              chat_history: chatHistory,
+            }),
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.detail || "Failed to generate answer."
+          );
+        }
+
+        const assistantMessage: ChatMessage = {
+          role: "assistant",
+          content: data.answer,
+        };
+
+        setAnswer(data.answer);
+
+        setChatHistory((prevHistory) => [
+          ...prevHistory,
+          userMessage,
+          assistantMessage,
+        ]);
+
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("Something went wrong.");
+        }
+      } finally {
+        setChatLoading(false);
+      }
+  };
 
   return (
     <main className="min-h-screen bg-gray-50 px-6 py-12">

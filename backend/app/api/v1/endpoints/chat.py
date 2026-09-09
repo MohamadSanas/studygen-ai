@@ -34,7 +34,8 @@ async def chat_with_document(request: ChatRequest):
     try:
         answer = await llm_qwen.generate(
             question=request.question,
-            context=context
+            context=context,
+            chat_history=request.chat_history,
         )
 
     except Exception as e:
