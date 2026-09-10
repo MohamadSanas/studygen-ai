@@ -24,7 +24,14 @@ class Settings(BaseSettings):
     MAX_UPLOAD_SIZE_MB: int = 25
 
     # Database
-    DATABASE_URL: str = "sqlite:///./studygen.db"
+    DATABASE_URL: str = "postgresql://neondb_owner:npg_6e2vSklIEahX@ep-wandering-hall-b3lhhhcu-pooler.c-4.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+
+    # Authentication
+    JWT_SECRET_KEY: str
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+
+
 
     model_config = SettingsConfigDict(
         env_file=".env",

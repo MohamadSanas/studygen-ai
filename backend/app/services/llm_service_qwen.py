@@ -10,17 +10,19 @@ class QwenLLMService:
         self.api_token = settings.HF_TOKEN
         self.model = settings.HF_MODEL
 
-    async def generate(self, question: str, context: str) -> str:
-
+    async def generate(self, question: str, context: str, chat_history: list[dict[str, str]]) -> str:
+        history_text = "\n".join(
+            f"{msg['role']}: {msg['content']}"
+            for msg in chat_history
+        )
         prompt = f"""
-You are StudyGen AI, a university study assistant.
-
-{question}
-
-LECTURE MATERIAL:
-
-{context}
-"""
+            CHAT HISTORY:
+            {history_text}
+            You are StudyGen AI, a university study assistant.
+            {question}
+            LECTURE MATERIAL:
+            {context}
+        """
 
         payload = {
             "model": self.model,

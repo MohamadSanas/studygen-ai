@@ -11,11 +11,32 @@ interface SummaryResponse {
   summary: string;
 }
 
+interface DocumentResponse {
+  id: string;
+  filename: string;
+  content_type: string;
+  file_path: string;
+  num_chunks: number;
+  created_at: string;
+}
+
+interface ChatMessage{
+  role:"user" | "assistant";
+  content:string;
+}
+
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [summary, setSummary] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
+  
+  const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
+  const [documentId, setDocumentId] = useState<string | null>(null);
+
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -46,6 +67,27 @@ export default function Home() {
     setSummary("");
 
     try {
+      const documentFormData = new FormData();
+      documentFormData.append("file", file);
+
+      const document_response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/upload`,{
+        method: "POST",
+        body: documentFormData,
+      })
+      if (!document_response.ok) {
+        throw new Error(
+          "Failed to upload document."
+        );
+      }
+
+      const document_details = await document_response.json()
+      const documentId = document_details.id;
+
+      console.log("Document ID:", documentId);
+      setDocumentId(documentId);
+
+      
+
       const formData = new FormData();
       formData.append("file", file);
 
@@ -77,6 +119,74 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleChat = async () => {
+      if (!documentId) {
+        setError("Please upload a document first.");
+        return;
+      }
+
+      if (!question.trim()) {
+        setError("Please enter a question.");
+        return;
+      }
+
+      const userMessage: ChatMessage = {
+        role: "user",
+        content: question,
+      };
+
+      setChatLoading(true);
+      setAnswer("");
+      setError("");
+
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/chat/`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              document_id: documentId,
+              question: question,
+              chat_history: chatHistory,
+            }),
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.detail || "Failed to generate answer."
+          );
+        }
+
+        const assistantMessage: ChatMessage = {
+          role: "assistant",
+          content: data.answer,
+        };
+
+        setAnswer(data.answer);
+
+        setChatHistory((prevHistory) => [
+          ...prevHistory,
+          userMessage,
+          assistantMessage,
+        ]);
+
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("Something went wrong.");
+        }
+      } finally {
+        setChatLoading(false);
+      }
   };
 
   return (
@@ -223,6 +333,58 @@ export default function Home() {
                 {summary}
               </ReactMarkdown>
             </div>
+          </div>
+        )}
+
+
+        {/* Chat with PDF */}
+        {documentId && (
+          <div className="mt-8 rounded-2xl bg-white p-8 shadow-lg">
+            <h2 className="text-2xl font-semibold text-gray-900">
+              Chat with your PDF
+            </h2>
+
+            <p className="mt-2 text-gray-500">
+              Ask questions about the uploaded document.
+            </p>
+
+            {/* Question Input */}
+            <div className="mt-6">
+              <textarea
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                placeholder="Ask something about your PDF..."
+                rows={4}
+                className="w-full rounded-xl border border-gray-300 p-4 text-gray-800 outline-none focus:border-gray-500"
+              />
+            </div>
+
+            {/* Ask Button */}
+            <button
+              onClick={handleChat}
+              disabled={!question.trim() || chatLoading}
+              className="mt-4 w-full rounded-xl bg-black px-6 py-3 font-semibold text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300"
+            >
+              {chatLoading ? "Thinking..." : "Ask Question"}
+            </button>
+
+            {/* Answer */}
+            {answer && (
+              <div className="mt-6 rounded-xl bg-gray-50 p-6">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Answer
+                </h3>
+
+                <div className="mt-4 leading-7 text-gray-700">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkMath]}
+                    rehypePlugins={[rehypeKatex]}
+                  >
+                    {answer}
+                  </ReactMarkdown>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
