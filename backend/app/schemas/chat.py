@@ -3,9 +3,10 @@ from typing import List, Optional
 
 
 class ChatRequest(BaseModel):
-    document_id: Optional[str] = None
+    document_id: str
+    conversation_id: str
     question: str
-    chat_history: List[dict] = Field(default_factory=list)
+    
 
 
 class SourceChunk(BaseModel):
@@ -17,3 +18,4 @@ class SourceChunk(BaseModel):
 class ChatResponse(BaseModel):
     answer: str
     sources: List[SourceChunk] = Field(default_factory=list)
+ 

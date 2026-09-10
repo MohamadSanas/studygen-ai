@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
@@ -20,10 +20,6 @@ interface DocumentResponse {
   created_at: string;
 }
 
-interface ChatMessage{
-  role:"user" | "assistant";
-  content:string;
-}
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
@@ -35,8 +31,23 @@ export default function Home() {
   const [answer, setAnswer] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
   const [documentId, setDocumentId] = useState<string | null>(null);
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
 
-  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      window.location.href = "/login";
+      return;
+    }
+    setAccessToken(token);
+  }, []);
+
+
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    window.location.href = "/login";
+  };
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -57,6 +68,12 @@ export default function Home() {
   };
 
   const handleSummarize = async () => {
+    const accessToken = localStorage.getItem("access_token");
+    if(!accessToken){
+      setError("Please login to continue.");
+      return;
+    }
+
     if (!file) {
       setError("Please select a PDF file first.");
       return;
@@ -73,6 +90,9 @@ export default function Home() {
       const document_response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/upload`,{
         method: "POST",
         body: documentFormData,
+        headers: {
+          "Authorization": `Bearer ${accessToken}`,
+        },
       })
       if (!document_response.ok) {
         throw new Error(
@@ -82,11 +102,34 @@ export default function Home() {
 
       const document_details = await document_response.json()
       const documentId = document_details.id;
-
       console.log("Document ID:", documentId);
       setDocumentId(documentId);
 
-      
+      const conversation_response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/conversations/`,{
+        method: "POST",
+        body: JSON.stringify({
+          document_id: documentId,
+          title: file.name,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${accessToken}`,
+        },
+      })
+
+      const conversationDate = await conversation_response.json();
+      console.log("Conversation Data:", conversationDate);
+
+      if(!conversation_response.ok){
+        throw new Error(
+          conversationDate.detail || "Failed to create conversation."
+        );
+      }
+
+      const conversationId = conversationDate.id;
+      console.log("Conversation ID:", conversationId);
+      setConversationId(conversationId);
 
       const formData = new FormData();
       formData.append("file", file);
@@ -96,6 +139,9 @@ export default function Home() {
         {
           method: "POST",
           body: formData,
+          headers: {
+            "Authorization": `Bearer ${accessToken}`,
+          },
         }
       );
 
@@ -122,6 +168,12 @@ export default function Home() {
   };
 
   const handleChat = async () => {
+    const accessToken = localStorage.getItem("access_token");
+
+    if(!accessToken){
+      setError("Please login to continue.");
+      return;
+    }
       if (!documentId) {
         setError("Please upload a document first.");
         return;
@@ -132,10 +184,6 @@ export default function Home() {
         return;
       }
 
-      const userMessage: ChatMessage = {
-        role: "user",
-        content: question,
-      };
 
       setChatLoading(true);
       setAnswer("");
@@ -148,11 +196,12 @@ export default function Home() {
             method: "POST",
             body: JSON.stringify({
               document_id: documentId,
+              conversation_id: conversationId,
               question: question,
-              chat_history: chatHistory,
             }),
             headers: {
               "Content-Type": "application/json",
+              "Authorization": `Bearer ${accessToken}`,
             },
           }
         );
@@ -165,18 +214,7 @@ export default function Home() {
           );
         }
 
-        const assistantMessage: ChatMessage = {
-          role: "assistant",
-          content: data.answer,
-        };
-
         setAnswer(data.answer);
-
-        setChatHistory((prevHistory) => [
-          ...prevHistory,
-          userMessage,
-          assistantMessage,
-        ]);
 
       } catch (err) {
         if (err instanceof Error) {
@@ -193,15 +231,33 @@ export default function Home() {
     <main className="min-h-screen bg-gray-50 px-6 py-12">
       <div className="mx-auto max-w-4xl">
         {/* Header */}
-        <div className="mb-10 text-center">
+        <div className="flex items-center justify-between mb-10">
           <h1 className="text-4xl font-bold text-gray-900">
             StudyGen AI
           </h1>
+
+          {accessToken ? (
+            <button
+              onClick={handleLogout}
+              className="rounded-lg bg-red-500 px-6 py-3 text-white transition hover:bg-red-600"
+            >
+              Logout
+            </button>
+          ) : (
+            <a
+              href="/login"
+              className="rounded-lg bg-blue-500 px-6 py-3 text-white transition hover:bg-blue-600"
+            >
+              Login
+            </a>
+          )}
 
           <p className="mt-3 text-lg text-gray-600">
             Upload your lecture notes and generate an AI-powered summary.
           </p>
         </div>
+
+
 
         {/* Upload Card */}
         <div className="rounded-2xl bg-white p-8 shadow-lg">

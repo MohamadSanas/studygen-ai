@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import documents, chat, summary, quiz, flashcards, auth
+from app.api.v1.endpoints import documents, chat, summary, quiz, flashcards, auth, conversation
 
 api_router = APIRouter()
 
@@ -9,3 +9,5 @@ api_router.include_router(chat.router, prefix="/chat", tags=["Chat & RAG"])
 api_router.include_router(summary.router, prefix="/summary", tags=["Summarization"])
 api_router.include_router(quiz.router, prefix="/quiz", tags=["Quiz Generation"])
 api_router.include_router(flashcards.router, prefix="/flashcards", tags=["Flashcards"])
+api_router.include_router(conversation.router, prefix="/conversation", tags=["Conversation"])
+

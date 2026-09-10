@@ -5,6 +5,7 @@ from fastapi import APIRouter, UploadFile, File, HTTPException, status, Depends
 from sqlalchemy.orm import Session
 
 from app.schemas.document import DocumentResponse
+from typing import List
 from app.services.pdf_processor import PDFProcessor
 from app.services.vector_store import VectorStoreService
 from app.core.config import settings
@@ -70,3 +71,18 @@ async def upload_document(
     db.refresh(document)
 
     return document
+
+
+@router.get("/",response_model=List[DocumentResponse])
+def get_user_documents(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    documents = (
+        db.query(Document)
+        .filter(Document.user_id == current_user.id)
+        .order_by(Document.created_at.desc())
+        .all()
+    )
+
+    return documents

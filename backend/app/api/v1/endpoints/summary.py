@@ -1,4 +1,6 @@
-from fastapi import APIRouter, HTTPException, File, UploadFile
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
+from app.api.dependencies import get_current_user
+from app.models.user import User
 from pathlib import Path
 import tempfile
 
@@ -9,7 +11,7 @@ router = APIRouter()
 
 
 @router.post("/")
-async def summarize_pdf(file: UploadFile = File(...)):
+async def summarize_pdf(file: UploadFile = File(...), current_user: User = Depends(get_current_user)):
 
     if file.content_type != "application/pdf":
         raise HTTPException(
