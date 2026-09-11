@@ -1,3 +1,4 @@
+from app.db.database import SessionLocal
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
 from app.api.dependencies import get_current_user
 from app.models.user import User
@@ -5,6 +6,7 @@ from pathlib import Path
 import tempfile
 
 from app.services.llm_service_qwen import QwenLLMService
+from app.services.chat_history_service import get_chat_history
 from app.services.pdf_processor import PDFProcessor
 
 router = APIRouter()
@@ -83,9 +85,19 @@ async def summarize_pdf(file: UploadFile = File(...), current_user: User = Depen
             $$y = mx + b$$
             """
 
+        db = SessionLocal()
+        try:
+            chat_history = get_chat_history(
+                db=db,
+                conversation_id="summary-temp",
+            )
+        finally:
+            db.close()
+
         summary = await llm.generate(
             question=question,
             context=full_text,
+            chat_history = chat_history
         )
 
         return {

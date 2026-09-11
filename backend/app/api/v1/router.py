@@ -9,5 +9,6 @@ api_router.include_router(chat.router, prefix="/chat", tags=["Chat & RAG"])
 api_router.include_router(summary.router, prefix="/summary", tags=["Summarization"])
 api_router.include_router(quiz.router, prefix="/quiz", tags=["Quiz Generation"])
 api_router.include_router(flashcards.router, prefix="/flashcards", tags=["Flashcards"])
-api_router.include_router(conversation.router, prefix="/conversation", tags=["Conversation"])
+api_router.include_router(conversation.router, prefix="/conversations", tags=["Conversations"])
+
 
