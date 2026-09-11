@@ -55,6 +55,25 @@ def create_new_conversation(
     return conversation
 
 
+
+@router.get(
+    "/",
+    response_model=List[ConversationResponse],
+)
+def get_user_conversations(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    conversations = (
+        db.query(Conversation)
+        .filter(Conversation.user_id == current_user.id)
+        .order_by(Conversation.created_at.desc())
+        .all()
+    )
+
+    return conversations
+
+
 @router.get("/{conversation_id}/messages",response_model=List[ChatMessageResponse],
 )
 

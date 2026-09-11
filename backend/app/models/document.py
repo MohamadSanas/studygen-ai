@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.sql import func
 
 from app.db.base import Base
@@ -23,6 +23,8 @@ class Document(Base):
     content_type = Column(String, nullable=False)
 
     num_chunks = Column(Integer, nullable=False, default=0)
+
+    summary = Column(Text, nullable=True)
 
     created_at = Column(
         DateTime(timezone=True),
