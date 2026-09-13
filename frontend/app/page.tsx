@@ -35,6 +35,19 @@ interface Conversation {
   created_at: string;
 }
 
+interface QuizQuestion {
+  id: number;
+  question: string;
+  options: string[];
+  correct_answer: string;
+  explanation: string;
+}
+
+interface QuizResponse {
+  document_id: string;
+  questions: QuizQuestion[];
+}
+
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
@@ -52,6 +65,11 @@ export default function Home() {
   const [history, setHistory] = useState<ChatMessage[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
 
+  const [quiz, setQuiz] = useState<QuizResponse | null>(null);
+  const [quizLoading, setQuizLoading] = useState(false);
+  const [quizError, setQuizError] = useState("");
+  const [numQuestions, setNumQuestions] = useState(5);
+  const [difficulty, setDifficulty] = useState("medium");
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
@@ -444,6 +462,62 @@ export default function Home() {
     }
   };
 
+  const handleGenerateQuiz = async () => {
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+      window.location.href = "/login";
+      return;
+    }
+
+    if (!documentId) {
+      setQuizError("Please select a document first.");
+      return;
+    }
+
+    setQuizLoading(true);
+    setQuizError("");
+    setQuiz(null);
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/quiz/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            document_id: documentId,
+            num_questions: numQuestions,
+            difficulty: difficulty,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          typeof data.detail === "string"
+            ? data.detail
+            : "Failed to generate quiz."
+        );
+      }
+
+      setQuiz(data);
+    } catch (err) {
+      if (err instanceof Error) {
+        setQuizError(err.message);
+      } else {
+        setQuizError("Something went wrong.");
+      }
+    } finally {
+      setQuizLoading(false);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-gray-50 px-6 py-12">
       <div className="mx-auto flex max-w-6xl gap-6">
@@ -669,6 +743,101 @@ export default function Home() {
                   {summary}
                 </ReactMarkdown>
               </div>
+            </div>
+          )}
+
+
+          <div className="mt-8 rounded-xl border bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-xl font-semibold text-gray-900">
+              Generate Quiz
+            </h2>
+
+            <div className="mb-4 flex gap-4">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">
+                  Questions
+                </label>
+
+                <select
+                  value={numQuestions}
+                  onChange={(e) => setNumQuestions(Number(e.target.value))}
+                  className="rounded-lg border px-3 py-2"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={15}>15</option>
+                  <option value={20}>20</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">
+                  Difficulty
+                </label>
+
+                <select
+                  value={difficulty}
+                  onChange={(e) => setDifficulty(e.target.value)}
+                  className="rounded-lg border px-3 py-2"
+                >
+                  <option value="easy">Easy</option>
+                  <option value="medium">Medium</option>
+                  <option value="hard">Hard</option>
+                </select>
+              </div>
+            </div>
+
+            <button
+              onClick={handleGenerateQuiz}
+              disabled={quizLoading || !documentId}
+              className="rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {quizLoading ? "Generating Quiz..." : "Generate Quiz"}
+            </button>
+
+            {quizError && (
+              <p className="mt-3 text-sm text-red-600">
+                {quizError}
+              </p>
+            )}
+          </div>
+
+
+          {quiz && (
+            <div className="mt-6 space-y-6">
+              {quiz.questions.map((question, index) => (
+                <div
+                  key={question.id}
+                  className="rounded-xl border bg-white p-6 shadow-sm"
+                >
+                  <h3 className="mb-4 font-semibold text-gray-900">
+                    {index + 1}. {question.question}
+                  </h3>
+
+                  <div className="space-y-2">
+                    {question.options.map((option, optionIndex) => (
+                      <div
+                        key={optionIndex}
+                        className="rounded-lg border px-4 py-3 text-gray-700"
+                      >
+                        {String.fromCharCode(65 + optionIndex)}. {option}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-4 rounded-lg bg-gray-50 p-4">
+                    <p className="text-sm font-medium text-gray-900">
+                      Answer: {question.correct_answer}
+                    </p>
+
+                    {question.explanation && (
+                      <p className="mt-1 text-sm text-gray-600">
+                        {question.explanation}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 

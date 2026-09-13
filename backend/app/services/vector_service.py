@@ -16,7 +16,12 @@ class VectorService:
     def add_documents(self, documents):
         self.vector_store.add_documents(documents)
 
-    def similarity_search(self, query:str, k:int=5):
+    def similarity_search(self, query:str, k:int=5, document_id:str | None = None):
+        return self.vector_store.similarity_search(
+            query,
+            k=k,
+            filter={"document_id": document_id},
+        )
         return self.vector_store.similarity_search(query, k=k)
         
     def create_vector_store(self, documents):

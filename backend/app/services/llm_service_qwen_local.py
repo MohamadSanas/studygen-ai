@@ -21,7 +21,7 @@ class QwenLLMServiceLocal:
                 "role": "system",
                 "content": (
                     "You are StudyGen AI, a university study assistant. "
-                    "Answer questions using the provided lecture material. "
+                    "Answer questions using the provided lecture material. "    
                     "Do not invent information that is not present in the material."
                 ),
             }
@@ -39,12 +39,12 @@ class QwenLLMServiceLocal:
             {
                 "role": "user",
                 "content": f"""
-QUESTION:
-{question}
+                    QUESTION:
+                    {question}
 
-LECTURE MATERIAL:
-{context}
-""",
+                    LECTURE MATERIAL:
+                    {context}
+                """,
             }
         )
 

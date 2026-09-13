@@ -37,7 +37,7 @@ class VectorStoreService:
         self,
         query: str,
         document_id: Optional[str] = None,
-        k: int = 4,
+        k: int = 5,
     ):
         filter_dict = (
             {"document_id": document_id}
