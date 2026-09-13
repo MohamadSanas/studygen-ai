@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, Form
 from app.api.dependencies import get_current_user, get_db
 from app.models.user import User
 from app.models.document import Document
@@ -10,6 +10,8 @@ from sqlalchemy.orm import Session
 from app.services.llm_service_qwen import QwenLLMService
 from app.services.chat_history_service import get_chat_history
 from app.services.pdf_processor import PDFProcessor
+from app.services.llm_service_qwen_local import QwenLLMServiceLocal
+
 
 
 router = APIRouter()
@@ -17,7 +19,7 @@ router = APIRouter()
 
 @router.post("/")
 async def summarize_pdf(
-    document_id: str,
+    document_id: str = Form(...),
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -88,7 +90,7 @@ async def summarize_pdf(
             for doc in documents
         )
 
-        llm = QwenLLMService()
+        llm = llm = QwenLLMServiceLocal()
 
         question = """
             Create a clear, exam-oriented summary of the lecture material.

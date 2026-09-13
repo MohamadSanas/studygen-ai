@@ -105,3 +105,47 @@ def get_conversation_messages(
     )
 
     return messages
+
+
+@router.get("/{conversation_id}/summary")
+def get_conversation_summary(
+    conversation_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    conversation = (
+        db.query(Conversation)
+        .filter(
+            Conversation.id == conversation_id,
+            Conversation.user_id == current_user.id,
+        )
+        .first()
+    )
+
+    if not conversation:
+        raise HTTPException(
+            status_code=404,
+            detail="Conversation not found",
+        )
+
+    document = (
+        db.query(Document)
+        .filter(
+            Document.id == conversation.document_id,
+            Document.user_id == current_user.id,
+        )
+        .first()
+    )
+
+    if not document:
+        raise HTTPException(
+            status_code=404,
+            detail="Document not found",
+        )
+
+    return {
+        "conversation_id": conversation.id,
+        "document_id": document.id,
+        "summary": document.summary,
+        "has_summary": bool(document.summary),
+    }

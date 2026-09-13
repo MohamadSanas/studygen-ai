@@ -63,7 +63,6 @@ async def upload_document(
         filename=file.filename,
         file_path=file_path,
         content_type=file.content_type or "application/pdf",
-        content=content.decode("utf-8"),
         num_chunks=len(chunks),
     )
 
