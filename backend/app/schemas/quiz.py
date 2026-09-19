@@ -17,8 +17,14 @@ class QuizRequest(BaseModel):
 
 
 class QuizResponse(BaseModel):
+    id: Optional[str]=None
     document_id: str
+    title: Optional[str]=None
+    difficulty: Optional[str]="medium"
     questions: List[QuizQuestion]
+    class config:
+        from_attributes = True
+
 
 class EssayQuestion(BaseModel):
     document_id: str

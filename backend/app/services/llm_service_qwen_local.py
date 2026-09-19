@@ -1,16 +1,18 @@
 import ollama
+from app.core.config import settings
 
 
 class QwenLLMServiceLocal:
 
-    def __init__(self, model_name: str = "qwen2.5:1.5b"):
-        self.model_name = model_name
+    def __init__(self, model_name: str = None):
+        self.model_name = model_name or settings.MODEL_NAME or 'qwen2.5:1.5b'
 
     async def generate(
         self,
-        question: str,
-        context: str,
+        question: str="",
+        context: str="",
         chat_history: list[dict[str, str]] | None = None,
+        prompt: str | None = None
     ) -> str:
 
         if chat_history is None:
@@ -35,18 +37,18 @@ class QwenLLMServiceLocal:
                 }
             )
 
-        messages.append(
-            {
-                "role": "user",
-                "content": f"""
-                    QUESTION:
-                    {question}
+            user_content = prompt if prompt else f"""
+                    QUESTION: \n {question}\n\n
 
-                    LECTURE MATERIAL:
-                    {context}
-                """,
-            }
-        )
+                    LECTURE MATERIAL: \n {context}
+                """
+            
+            messages.append(
+                {
+                    "role": "user",
+                    "content": user_content,
+                }
+            )
 
         try:
             client = ollama.AsyncClient()

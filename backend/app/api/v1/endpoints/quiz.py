@@ -1,26 +1,24 @@
+import json
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-import json
 
-from app.schemas.quiz import QuizResponse, QuizRequest, QuizQuestion
+from app.schemas.quiz import QuizResponse, QuizRequest, QuizQuestion as QuizQuestionSchema
 from app.models.user import User
 from app.models.document import Document
+from app.models.quiz import Quiz as QuizModel, QuizQuestion as QuizQuestionModel
 from app.api.dependencies import get_current_user, get_db
-from app.services.vector_service import VectorService
+from app.services.vector_store import VectorStoreService
 from app.services.llm_service_qwen_local import QwenLLMServiceLocal
 
 router = APIRouter()
 
-vector_service = VectorService()
+vector_store = VectorStoreService()
 llm = QwenLLMServiceLocal()
 
 
 @router.post("/", response_model=QuizResponse)
-async def generate_quiz(
-    request: QuizRequest,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
+async def generate_quiz(request: QuizRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db),):
     # Check document ownership
     document = (
         db.query(Document)
@@ -37,8 +35,8 @@ async def generate_quiz(
             detail="Document not found",
         )
 
-    # Retrieve relevant chunks from ChromaDB
-    retrieved_docs = vector_service.similarity_search(
+    # 2. Retrieve relevant chunks from ChromaDB
+    retrieved_docs = vector_store.similarity_search(
         query="main concepts, definitions, important facts and key topics",
         k=max(request.num_questions * 2, 10),
         document_id=request.document_id,
@@ -50,11 +48,9 @@ async def generate_quiz(
             detail="No content found for this document.",
         )
 
-    context = "\n\n".join(
-        doc.page_content for doc in retrieved_docs
-    )
+    context = "\n\n".join(doc.page_content for doc in retrieved_docs)
 
-    # Ask Qwen to generate the quiz
+    # 3. Prompt Qwen to generate structured JSON quiz
     prompt = f"""
         Generate {request.num_questions} multiple-choice questions
         from the provided lecture material.
@@ -103,13 +99,10 @@ async def generate_quiz(
             chat_history=[],
         )
 
-        # Remove accidental Markdown code fences
+        # Clean accidental Markdown code fences
         result = result.strip()
-
         if result.startswith("```"):
-            result = result.replace("```json", "")
-            result = result.replace("```", "")
-            result = result.strip()
+            result = result.replace("```json", "").replace("```", "").strip()
 
         quiz_data = json.loads(result)
 
@@ -118,26 +111,96 @@ async def generate_quiz(
             status_code=500,
             detail="Qwen returned invalid JSON for the quiz.",
         )
-
     except Exception as e:
         raise HTTPException(
             status_code=500,
             detail=f"Quiz generation failed: {str(e)}",
         )
 
-    # Convert generated questions into Pydantic objects
+    # 4. Parse questions into Pydantic schemas
     try:
-        questions = [
-            QuizQuestion(**question)
-            for question in quiz_data["questions"]
+        questions_schema = [
+            QuizQuestionSchema(**q) for q in quiz_data["questions"]
         ]
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Invalid quiz format returned by Qwen: {str(e)}",
+            detail=f"Invalid quiz format returned by LLM: {str(e)}",
         )
 
-    return QuizResponse(
+    # 5. Persist Quiz & Questions to PostgreSQL
+    new_quiz = QuizModel(
+        user_id=current_user.id,
         document_id=document.id,
-        questions=questions,
+        title=f"Quiz: {document.filename}",
+        difficulty=request.difficulty or "medium",
+        num_questions=len(questions_schema),
     )
+    db.add(new_quiz)
+    db.flush()  # Populates new_quiz.id before committing
+
+    for q in questions_schema:
+        db_question = QuizQuestionModel(
+            quiz_id=new_quiz.id,
+            question_number=q.id,
+            question_text=q.question,
+            options=q.options,
+            correct_answer=q.correct_answer,
+            explanation=q.explanation,
+        )
+        db.add(db_question)
+
+    db.commit()
+    db.refresh(new_quiz)
+
+    return QuizResponse(
+        id=new_quiz.id,
+        document_id=document.id,
+        title=new_quiz.title,
+        difficulty=new_quiz.difficulty,
+        created_at=new_quiz.created_at,
+        questions=questions_schema,
+    )
+
+
+@router.get("/{document_id}", response_model=List[QuizResponse])
+def get_quizzes_for_document(
+    document_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Retrieve all previously generated quizzes for a specific document."""
+    quizzes = (
+        db.query(QuizModel)
+        .filter(
+            QuizModel.document_id == document_id,
+            QuizModel.user_id == current_user.id,
+        )
+        .order_by(QuizModel.created_at.desc())
+        .all()
+    )
+
+    results = []
+    for q in quizzes:
+        questions = [
+            QuizQuestionSchema(
+                id=item.question_number,
+                question=item.question_text,
+                options=item.options,
+                correct_answer=item.correct_answer,
+                explanation=item.explanation,
+            )
+            for item in q.questions
+        ]
+        results.append(
+            QuizResponse(
+                id=q.id,
+                document_id=q.document_id,
+                title=q.title,
+                difficulty=q.difficulty,
+                created_at=q.created_at,
+                questions=questions,
+            )
+        )
+
+    return results
