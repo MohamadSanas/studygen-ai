@@ -1,0 +1,27 @@
+# Lecture 1: Deep Learning Regularization Techniques
+Dropout is one of the most effective regularization techniques for deep neural networks. During training, dropout randomly sets a fraction of neuron activations to zero during each forward pass. This prevents complex co-adaptation where neurons become dependent on specific neighboring neurons, forcing the network to learn robust, generalized representations.
+L1 and L2 regularization prevent overfitting by penalizing large model parameters in the loss function. L1 regularization (Lasso) adds the absolute sum of weights to the objective, which encourages sparse solutions and effectively performs feature selection by driving irrelevant weights to zero. In contrast, L2 regularization (Ridge) adds the squared sum of weights, shrinking weights toward zero smoothly without forcing them to exactly zero.
+
+---
+
+# Lecture 2: Vector Search & Mathematical Foundations
+In vector search and natural language processing, Cosine Similarity measures the cosine of the angle between two non-zero vectors in an inner product space. It is calculated as the dot product divided by the product of their L2 norms: (A . B) / (||A|| * ||B||). Values range from -1 to 1, with 1 indicating identical directional orientation regardless of magnitude.
+Reciprocal Rank Fusion (RRF) is an unsupervised ranking algorithm used to combine candidate lists from disparate search retrieval systems (such as dense semantic vectors and sparse BM25 keyword matching). RRF assigns a score to each document using the formula: score = sum(1 / (k + rank)), where k is a smoothing constant typically set to 60.
+
+---
+
+# Lecture 3: Optimization & Gradient Dynamics
+The Adam optimizer combines the principles of AdaGrad and RMSProp into an adaptive learning rate algorithm. Adam computes adaptive learning rates for each parameter by maintaining exponential moving averages of both the past gradients (the first moment, similar to momentum) and the squared gradients (the second moment, similar to RMSProp).
+The vanishing gradient problem frequently occurs in deep neural networks using Sigmoid or Tanh activation functions. The derivative of the sigmoid function has a maximum value of 0.25. During backpropagation through multiple layers, multiplying these small fractions exponentially shrinks gradients toward zero, preventing earlier layers from updating their weights effectively.
+
+---
+
+# Lecture 4: Attention & Modern Transformer Architectures
+In the Transformer architecture, the core mechanism is Scaled Dot-Product Attention. Given queries Q, keys K, and values V, the attention weights are computed using the formula: Attention(Q, K, V) = softmax((Q * K^T) / sqrt(d_k)) * V. Scaling by the square root of key dimension d_k prevents dot products from growing excessively large for high dimensions, which would otherwise push softmax into regions with vanishing gradients.
+
+---
+
+# Lecture 5: Evaluation Metrics in ML and NLP
+The Bias-Variance Tradeoff represents the fundamental conflict in supervised learning between model complexity and generalization. High bias models are too simple and underfit by missing key patterns, whereas high variance models are overly complex and overfit by capturing random training noise. Total generalization error is mathematically decomposed into bias squared, variance, and irreducible error.
+In classification tasks, the ROC-AUC metric plots the True Positive Rate against the False Positive Rate across all classification thresholds. An AUC of 1.0 indicates perfect discrimination, while 0.5 is equivalent to random guessing.
+Bilingual Evaluation Understudy (BLEU) is an algorithm for evaluating the quality of text translated by machine translation systems. BLEU computes n-gram precision overlap between candidate translations and human references, penalizing candidate sentences that are too short with a brevity penalty.

@@ -1,0 +1,72 @@
+[
+  {
+    "id": "q1",
+    "query": "How does Dropout regularize deep neural networks during training?",
+    "ground_truth_answer": "Dropout randomly sets a fraction of neuron activations to zero during each forward pass, preventing complex co-adaptations between neurons.",
+    "expected_keywords": ["dropout", "activations", "co-adaptation", "zero", "training"],
+    "query_type": "conceptual"
+  },
+  {
+    "id": "q2",
+    "query": "What is the mathematical definition and formula for Cosine Similarity?",
+    "ground_truth_answer": "Cosine similarity measures the cosine of the angle between two non-zero vectors, calculated as the dot product divided by the product of their L2 norms: (A . B) / (||A|| * ||B||).",
+    "expected_keywords": ["dot product", "l2 norm", "angle", "cosine", "vectors"],
+    "query_type": "formula"
+  },
+  {
+    "id": "q3",
+    "query": "What does RRF stand for and what formula does it use in search?",
+    "ground_truth_answer": "RRF stands for Reciprocal Rank Fusion. It combines ranked lists using the formula: score = sum(1 / (k + rank)) where k is typically 60.",
+    "expected_keywords": ["reciprocal rank fusion", "rrf", "60", "rank", "score"],
+    "query_type": "acronym"
+  },
+  {
+    "id": "q4",
+    "query": "What is the difference between L1 (Lasso) and L2 (Ridge) regularization?",
+    "ground_truth_answer": "L1 adds the absolute sum of weights, encouraging sparse solutions and feature selection. L2 adds the squared sum of weights, shrinking weights toward zero without forcing them to exactly zero.",
+    "expected_keywords": ["l1", "l2", "lasso", "ridge", "sparse", "squared"],
+    "query_type": "conceptual"
+  },
+  {
+    "id": "q5",
+    "query": "How does the Adam optimizer combine AdaGrad and RMSProp?",
+    "ground_truth_answer": "Adam computes adaptive learning rates by maintaining exponential moving averages of both the past gradients (first moment, like momentum) and the squared gradients (second moment, like RMSProp).",
+    "expected_keywords": ["adam", "momentum", "rmsprop", "first moment", "second moment", "exponential moving average"],
+    "query_type": "technical_detail"
+  },
+  {
+    "id": "q6",
+    "query": "What causes the vanishing gradient problem in deep networks using Sigmoid activations?",
+    "ground_truth_answer": "The derivative of the sigmoid function has a maximum value of 0.25. During backpropagation through multiple layers, multiplying these small fractions exponentially shrinks gradients toward zero.",
+    "expected_keywords": ["vanishing gradient", "sigmoid", "derivative", "backpropagation", "0.25"],
+    "query_type": "conceptual"
+  },
+  {
+    "id": "q7",
+    "query": "What is the Scaled Dot-Product Attention formula in Transformer models?",
+    "ground_truth_answer": "Attention(Q, K, V) = softmax((Q * K^T) / sqrt(d_k)) * V, where scaling by sqrt(d_k) prevents dot products from growing excessively large for high dimensions.",
+    "expected_keywords": ["softmax", "q", "k", "v", "sqrt", "scaled dot-product", "attention"],
+    "query_type": "formula"
+  },
+  {
+    "id": "q8",
+    "query": "What is the definition of BLEU score in natural language processing?",
+    "ground_truth_answer": "Bilingual Evaluation Understudy (BLEU) measures n-gram precision overlap between machine translations and human references, penalizing candidate sentences that are too short with a brevity penalty.",
+    "expected_keywords": ["bleu", "n-gram", "precision", "brevity penalty", "translation"],
+    "query_type": "acronym"
+  },
+  {
+    "id": "q9",
+    "query": "Explain the Bias-Variance Tradeoff in machine learning.",
+    "ground_truth_answer": "High bias models are too simple and underfit by missing patterns, while high variance models are overly complex and overfit by capturing noise. Total error is the sum of bias squared, variance, and irreducible error.",
+    "expected_keywords": ["bias", "variance", "underfit", "overfit", "tradeoff"],
+    "query_type": "conceptual"
+  },
+  {
+    "id": "q10",
+    "query": "What is ROC-AUC and how is it interpreted?",
+    "ground_truth_answer": "Receiver Operating Characteristic Area Under the Curve plots True Positive Rate vs False Positive Rate across all thresholds. An AUC of 1.0 indicates perfect discrimination, while 0.5 is equivalent to random guessing.",
+    "expected_keywords": ["roc", "auc", "true positive rate", "false positive rate", "threshold", "0.5"],
+    "query_type": "acronym"
+  }
+]
